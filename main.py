@@ -73,8 +73,25 @@ def load_baseline(filepath):
       logging.warning("Error loading baseline from %s", filepath)
       return {}
 
+def create_honeyfiles(directory, number_of_honeyfiles):
+  """
+  Creates a specified number of decoy files with random content within the directory.
 
-def monitor_integrity(baseline, monitor_dir):
+  Args:
+      directory: Path to the directory for placing honeyfiles.
+      number_of_honeyfiles: Number of honeyfiles to create.
+  """
+  import random
+  honeyfile_hashes = {}  # Store initial hashes for modification detection
+  for i in range(number_of_honeyfiles):
+    honeyfile_name = f"honeyfile_{i}.txt"
+    honeyfile_path = os.path.join(directory, honeyfile_name)
+    with open(honeyfile_path, 'w') as f:
+      f.write(os.urandom(1024).decode())  # Write random content
+    honeyfile_hashes[honeyfile_path] = hash_file(honeyfile_path)
+  return honeyfile_hashes
+
+def monitor_integrity(baseline, monitor_dir, honeyfile_hashes):
   """
   Monitors the integrity of files based on the baseline dictionary.
 
@@ -93,7 +110,10 @@ def monitor_integrity(baseline, monitor_dir):
     current_hash = hash_file(filepath)
     file_size_changes[filepath] = os.path.getsize(filepath) - os.path.getsize(filepath, follow_symlinks=False)
     if current_hash != baseline_hash:
-      logging.warning(f"File modified: {filepath}")
+      if filepath in honeyfile_hashes:
+        logging.warning(f"Suspicious modification to honeyfile: {filepath}")
+      else:
+        logging.warning(f"File modified: {filepath}")
     else:
       logging.debug(f"File unchanged: {filepath}")  # Optional debug log
   # Handle new files
@@ -127,9 +147,10 @@ def main():
     baseline = create_baseline(monitor_dir)
     save_baseline(baseline, baseline_file)
 
+  honeyfile_hashes = create_honeyfiles(monitor_dir, 1)
   # Continuously monitor the directory
   while True:
-    monitor_integrity(baseline, monitor_dir)
+    monitor_integrity(baseline, monitor_dir, honeyfile_hashes)
     time.sleep(60)  # Optional: Sleep for 60 seconds between checks
 
 
