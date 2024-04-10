@@ -98,6 +98,13 @@ def monitor_integrity(baseline, monitor_dir):
       if filepath not in baseline:
         logging.info(f"New file added: {filepath}")
         # You can decide to add the new file to the baseline here
+        
+  # Analyze file size changes for anomalies (significant increases or decreases)
+  for filepath, size_change in file_size_changes.items():
+    threshold = 1024 * 1024  # 1 MB threshold (adjust as needed)
+    if size_change > threshold or size_change < -threshold:
+      logging.warning(f"Suspicious file size change: {filepath} ({size_change} bytes)")        
+    
 
 
 def main():
