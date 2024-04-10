@@ -3,6 +3,7 @@ import os
 import json
 import logging
 import time
+from collections import defaultdict  # Track file size changes
 
 
 
@@ -82,11 +83,15 @@ def monitor_integrity(baseline, monitor_dir):
 
   Logs information about modified, added, or deleted files.
   """
+  
+  file_size_changes = defaultdict(int)  # Track file size changes
+  
   for filepath, baseline_hash in baseline.items():
     if not os.path.exists(filepath):
       logging.info(f"File deleted: {filepath}")
       continue
     current_hash = hash_file(filepath)
+    file_size_changes[filepath] = os.path.getsize(filepath) - os.path.getsize(filepath, follow_symlinks=False)
     if current_hash != baseline_hash:
       logging.warning(f"File modified: {filepath}")
     else:
