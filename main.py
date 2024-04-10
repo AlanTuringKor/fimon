@@ -2,6 +2,8 @@ import hashlib
 import os
 import json
 import logging
+import time
+
 
 
 def hash_file(filepath):
@@ -71,7 +73,7 @@ def load_baseline(filepath):
       return {}
 
 
-def monitor_integrity(baseline):
+def monitor_integrity(baseline, monitor_dir):
   """
   Monitors the integrity of files based on the baseline dictionary.
 
@@ -115,7 +117,7 @@ def main():
 
   # Continuously monitor the directory
   while True:
-    monitor_integrity(baseline)
+    monitor_integrity(baseline, monitor_dir)
     time.sleep(60)  # Optional: Sleep for 60 seconds between checks
 
 
