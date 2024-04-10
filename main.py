@@ -130,7 +130,27 @@ def monitor_integrity(baseline, monitor_dir, honeyfile_hashes):
     if size_change > threshold or size_change < -threshold:
       logging.warning(f"Suspicious file size change: {filepath} ({size_change} bytes)")        
     
+def check_virus_total_report(filepath, api_key):
+  """
+  Checks the reputation of a file using VirusTotal's public API.
 
+  Args:
+      filepath: Path to the file.
+      api_key: Your VirusTotal API key.
+
+  Returns:
+      Dictionary containing VirusTotal report data or None if API request fails.
+  """
+  base_url = "https://www.virustotal.com/api/v3/files/"
+  headers = {"Authorization": f"Bearer {api_key}"}
+  with open(filepath, 'rb') as f:
+    files = {'file': (filepath, f)}
+  try:
+    response = requests.post(url=f"{base_url}{hash_file(filepath)}", headers=headers, files=files)
+    response.raise_for_status()  # Raise exception for non-200 status codes
+    return response.json()
+  except requests.exceptions.RequestException as e:
+    logging.warning
 
 def main():
   # Configure logging
