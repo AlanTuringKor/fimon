@@ -4,6 +4,7 @@ import json
 import logging
 import time
 from collections import defaultdict  # Track file size changes
+import requests  # For VirusTotal API
 
 
 
